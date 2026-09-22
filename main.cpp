@@ -1,55 +1,162 @@
-// PassCheck: Password Checker
-// Built with standard C++ only
-
 #include <iostream>
 #include <string>
+#include <vector>
 #include <cctype>
 using namespace std;
 
-int main() {
+class Rule {
+public:
+    virtual bool isSatisfied(const string& password) const = 0;
+    virtual string tip() const = 0;
+    virtual ~Rule() {}
+};
+
+class LengthRule : public Rule {
+private:
+    int minLength;
+public:
+    explicit LengthRule(int len) : minLength(len) {}
+
+    bool isSatisfied(const string& password) const override {
+        return static_cast<int>(password.length()) >= minLength;
+    }
+
+    string tip() const override {
+        return "Use at least " + to_string(minLength) + " characters.";
+    }
+};
+
+class UpperCaseRule : public Rule {
+public:
+    bool isSatisfied(const string& password) const override {
+        for (char c : password)
+            if (isupper(static_cast<unsigned char>(c))) return true;
+        return false;
+    }
+
+    string tip() const override {
+        return "Add an uppercase letter (A-Z).";
+    }
+};
+
+class LowerCaseRule : public Rule {
+public:
+    bool isSatisfied(const string& password) const override {
+        for (char c : password)
+            if (islower(static_cast<unsigned char>(c))) return true;
+        return false;
+    }
+
+    string tip() const override {
+        return "Add a lowercase letter (a-z).";
+    }
+};
+
+class DigitRule : public Rule {
+public:
+    bool isSatisfied(const string& password) const override {
+        for (char c : password)
+            if (isdigit(static_cast<unsigned char>(c))) return true;
+        return false;
+    }
+
+    string tip() const override {
+        return "Add a digit (0-9).";
+    }
+};
+
+class SymbolRule : public Rule {
+public:
+    bool isSatisfied(const string& password) const override {
+        for (char c : password) {
+            unsigned char ch = static_cast<unsigned char>(c);
+            if (!isupper(ch) && !islower(ch) && !isdigit(ch)) return true;
+        }
+        return false;
+    }
+
+    string tip() const override {
+        return "Add a symbol (! @ # $ % etc.).";
+    }
+};
+
+class PasswordChecker {
+private:
     string password;
-    cout << "Enter a password: ";
-    getline(cin, password);
+    vector<Rule*> rules;
 
-    if (password.empty()) {
-        cout << "Password cannot be empty." << endl;
-        return 0;
+public:
+    explicit PasswordChecker(const string& pw) : password(pw) {
+        rules.push_back(new LengthRule(8));
+        rules.push_back(new LengthRule(12));
+        rules.push_back(new UpperCaseRule());
+        rules.push_back(new LowerCaseRule());
+        rules.push_back(new DigitRule());
+        rules.push_back(new SymbolRule());
     }
 
-    // Look at each character and note which types are present
-    bool hasUpper = false, hasLower = false, hasDigit = false, hasSymbol = false;
-
-    for (char c : password) {
-        unsigned char ch = static_cast<unsigned char>(c);
-        if (isupper(ch))      hasUpper = true;
-        else if (islower(ch)) hasLower = true;
-        else if (isdigit(ch)) hasDigit = true;
-        else                  hasSymbol = true;
+    ~PasswordChecker() {
+        for (Rule* r : rules) {
+            delete r;
+        }
     }
 
-    // One point for each rule met (maximum 6)
-    int score = 0;
-    if (password.length() >= 8)  score++;
-    if (password.length() >= 12) score++;
-    if (hasUpper)  score++;
-    if (hasLower)  score++;
-    if (hasDigit)  score++;
-    if (hasSymbol) score++;
+    int getScore() const {
+        int score = 0;
+        for (const Rule* r : rules) {
+            if (r->isSatisfied(password)) score++;
+        }
+        return score;
+    }
 
-    // Show the result
-    cout << "\nScore: " << score << " / 6" << endl;
-    if (score <= 2)      cout << "Strength: Weak" << endl;
-    else if (score <= 4) cout << "Strength: Medium" << endl;
-    else                 cout << "Strength: Strong" << endl;
+    string getStrength() const {
+        int score = getScore();
+        if (score <= 2) return "Weak";
+        if (score <= 4) return "Medium";
+        return "Strong";
+    }
 
-    // Show tips for what is missing
-    cout << "\nTips:" << endl;
-    if (password.length() < 12) cout << "- Use at least 12 characters." << endl;
-    if (!hasUpper)  cout << "- Add an uppercase letter (A-Z)." << endl;
-    if (!hasLower)  cout << "- Add a lowercase letter (a-z)." << endl;
-    if (!hasDigit)  cout << "- Add a digit (0-9)." << endl;
-    if (!hasSymbol) cout << "- Add a symbol (! @ # $ % etc.)." << endl;
-    if (score == 6) cout << "- Nothing to improve. Great password!" << endl;
+    void showTips() const {
+        bool anyTip = false;
+        for (const Rule* r : rules) {
+            if (!r->isSatisfied(password)) {
+                cout << "- " << r->tip() << endl;
+                anyTip = true;
+            }
+        }
+        if (!anyTip) {
+            cout << "- Nothing to improve. Great password!" << endl;
+        }
+    }
+
+    void showReport() const {
+        cout << "\nScore: " << getScore() << " / " << rules.size() << endl;
+        cout << "Strength: " << getStrength() << endl;
+        cout << "\nTips:" << endl;
+        showTips();
+    }
+};
+
+int main() {
+    cout << "PassCheck: Password Checker (type 'quit' to exit)" << endl;
+
+    while (true) {
+        string input;
+        cout << "\nEnter a password: ";
+        getline(cin, input);
+
+        if (input == "quit") {
+            cout << "Goodbye!" << endl;
+            break;
+        }
+        if (input.empty()) {
+            cout << "Password cannot be empty." << endl;
+            continue;
+        }
+
+        PasswordChecker checker(input);
+        checker.showReport();
+    }
 
     return 0;
 }
