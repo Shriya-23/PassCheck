@@ -37,25 +37,7 @@ A password checker fits this well:
 - Classifies the password as **Weak**, **Medium** or **Strong**
 - Prints tips for each missing requirement
 - Rejects empty input
-### Scoring Rules
 
-| Rule | Points |
-|------|--------|
-| Length of 8 or more characters | 1 |
-| Length of 12 or more characters | 1 |
-| Contains an uppercase letter (A-Z) | 1 |
-| Contains a lowercase letter (a-z) | 1 |
-| Contains a digit (0-9) | 1 |
-| Contains a symbol (! @ # $ % etc.) | 1 |
-| **Maximum score** | **6** |
-
-### Strength Levels
-
-| Score | Result |
-|-------|--------|
-| 0 to 2 | Weak |
-| 3 to 4 | Medium |
-| 5 to 6 | Strong |
 
 ## C++ Concepts and Technologies Used
 
@@ -70,21 +52,6 @@ A password checker fits this well:
 | Version control | Git and GitHub |
 | Platform | Windows (command line) |
 | External libraries | None |
-
-## Learning Outcomes
-
-By building this project I learned how to:
-
-- Set up a C++ development environment (g++ and VS Code) and compile and run a program from the command line
-- Take user input safely with `getline`, including passwords that contain spaces
-- Use `std::string` and loop through it one character at a time
-- Classify characters with `isupper()`, `islower()` and `isdigit()` from `<cctype>`
-- Use `bool` flags to record what was found in a loop
-- Apply `if`, `else if` and `else` logic to turn a score into a result
-- Validate input (rejecting an empty password)
-- Write readable, commented code and explain it line by line
-- Use Git and GitHub to version and publish my work
-- Think critically about my own code by identifying its limitations and planning improvements
 
 
 
